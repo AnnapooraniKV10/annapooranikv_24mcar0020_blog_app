@@ -1,0 +1,40 @@
+services:
+
+  backend:
+    image: annapooranikv/blog-app:backend-v1
+    ports:
+      - "3000:3000"
+
+  frontend:
+    image: annapooranikv/blog-app:frontend-v1
+
+  security:
+    image: annapooranikv/blog-app:security-v1
+    ports:
+      - "80:80"
+
+  ai-agent:
+    image: annapooranikv/blog-app:ai-v1
+
+  db:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: example
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    depends_on:
+      - backend
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3001:3000"
+    depends_on:
+      - prometheus

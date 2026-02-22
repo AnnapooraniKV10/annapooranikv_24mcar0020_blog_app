@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>DevOps Premium Mini Blog</title>
+
+<style>
+
+/* ---------- COLOR PALETTE ---------- */
+
+:root {
+  --green-light:#D2E186;
+  --orange-light:#FCBF93;
+  --pink-soft:#F2E8DF;
+  --green-dark:#415111;
+  --orange-soft:#FB8159;
+  --white-main:#FEFEFE;
+}
+
+/* ---------- GLOBAL ---------- */
+
+body {
+  margin:0;
+  font-family:Arial;
+  background:linear-gradient(135deg,#D2E186,#F2E8DF,#FCBF93);
+  transition:0.4s;
+}
+
+.dark {
+  background:#1c1c1c;
+  color:white;
+}
+
+/* ---------- GLASS BACKGROUND BLOBS ---------- */
+
+.blur1 {
+  position:fixed;
+  width:350px;
+  height:350px;
+  background:#FB8159;
+  filter:blur(120px);
+  opacity:0.3;
+  top:-50px;
+  left:-50px;
+}
+
+.blur2 {
+  position:fixed;
+  width:350px;
+  height:350px;
+  background:#D2E186;
+  filter:blur(120px);
+  opacity:0.3;
+  bottom:-50px;
+  right:-50px;
+}
+
+/* ---------- HEADER ---------- */
+
+header {
+  background:rgba(65,81,17,0.6);
+  backdrop-filter:blur(15px);
+  color:white;
+  padding:20px;
+  text-align:center;
+  font-size:24px;
+}
+
+.footer {
+
+  text-align:center;
+
+  padding:20px;
+
+  margin-top:40px;
+
+  font-size:14px;
+
+  background:rgba(255,255,255,0.2);
+
+  backdrop-filter:blur(12px);
+
+  border-top:1px solid rgba(255,255,255,0.4);
+
+}
+
+.dark .footer {
+  background:rgba(40,40,40,0.4);
+}
+
+/* ---------- TOOLBAR ---------- */
+
+.toolbar {
+  display:flex;
+  justify-content:space-between;
+  padding:10px 20px;
+}
+
+/* ---------- BUTTONS ---------- */
+
+button {
+  background:#FB8159;
+  border:none;
+  padding:6px 12px;
+  color:white;
+  border-radius:8px;
+  cursor:pointer;
+}
+
+button:hover {
+  opacity:0.8;
+}
+
+/* ---------- LAYOUT ---------- */
+
+.container {
+  width:90%;
+  margin:20px auto;
+}
+
+/* BENTO PINTEREST STYLE */
+.bento {
+  column-count:3;
+  column-gap:15px;
+}
+
+/* ---------- GLASS CARD ---------- */
+
+.card {
+
+  break-inside:avoid;
+
+  background:rgba(255,255,255,0.25);
+
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,0.4);
+
+  box-shadow:0 8px 32px rgba(0,0,0,0.15);
+
+  padding:15px;
+  margin-bottom:15px;
+
+  animation:fadeIn 0.5s ease-in-out;
+}
+
+.dark .card {
+  background:rgba(40,40,40,0.5);
+}
+
+/* ---------- ANIMATION ---------- */
+
+@keyframes fadeIn {
+  from {opacity:0; transform:translateY(10px);}
+  to {opacity:1; transform:translateY(0);}
+}
+
+input, textarea {
+  width:100%;
+  padding:6px;
+  margin:5px 0;
+  border-radius:6px;
+  border:none;
+}
+
+.likes {
+  margin-top:10px;
+}
+
+/* ---------- AI BUTTON ---------- */
+
+.ai-box {
+  position:fixed;
+  bottom:20px;
+  right:20px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="blur1"></div>
+<div class="blur2"></div>
+
+<header>Mini Blog</header>
+
+<div class="toolbar">
+<button onclick="toggleDark()"> Dark Mode</button>
+<div id="loginSection">
+<button onclick="login()">Login</button>
+</div>
+</div>
+
+<div class="container">
+
+<div class="card">
+<h3>Create Post</h3>
+<input id="title" placeholder="Title">
+<textarea id="content" placeholder="Content"></textarea>
+<button onclick="addPost()">Publish</button>
+</div>
+
+<div class="bento" id="posts"></div>
+
+</div>
+
+<div class="ai-box">
+<button onclick="aiSuggest()">AI Suggest</button>
+</div>
+
+<script>
+
+let posts = [];
+let userLoggedIn=false;
+
+function toggleDark(){
+ document.body.classList.toggle("dark");
+}
+
+function login(){
+ userLoggedIn=true;
+ document.getElementById("loginSection").innerHTML="Logged In";
+}
+
+async function loadPosts(){
+ const res = await fetch("/api/posts");
+ posts = await res.json();
+ renderPosts();
+}
+
+function renderPosts(){
+
+ const container=document.getElementById("posts");
+ container.innerHTML="";
+
+ posts.forEach((post,index)=>{
+
+ container.innerHTML+=`
+ <div class="card">
+   <h4>${post.title}</h4>
+   <p>${post.content}</p>
+
+   <div class="likes">
+    ${post.likes||0}
+   <button onclick="likePost(${index})">Like</button>
+   <button onclick="deletePost(${index})">Delete</button>
+   </div>
+
+ </div>`;
+ });
+
+}
+
+function likePost(index){
+ posts[index].likes=(posts[index].likes||0)+1;
+ renderPosts();
+}
+
+function deletePost(index){
+ posts.splice(index,1);
+ renderPosts();
+}
+
+async function addPost(){
+
+ const title=document.getElementById("title").value;
+ const content=document.getElementById("content").value;
+
+ await fetch("/api/posts",{
+ method:"POST",
+ headers:{"Content-Type":"application/json"},
+ body:JSON.stringify({title,content})
+ });
+
+ loadPosts();
+}
+
+function aiSuggest(){
+
+ document.getElementById("title").value="AI Generated DevOps Insight";
+
+ document.getElementById("content").value=
+ "Kubernetes + Docker + Monitoring create scalable cloud-native systems.";
+
+}
+
+setInterval(loadPosts,5000);
+
+loadPosts();
+
+</script>
+<footer class="footer">
+  © 2026 Annapoorani K V (24MCAR0020) — DevOps Mini Blog Platform. All Rights Reserved.
+</footer>
+</body>
+</html>
